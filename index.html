@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — SecretarIA PR</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --primary:#E8614A;
+    --primary-light:#FFF0ED;
+    --primary-mid:#F4A090;
+    --gold:#D4A017;
+    --gold-light:#FFF8E7;
+    --green:#1D7A4A;
+    --green-light:#EAF5EE;
+    --amber:#BA7517;
+    --amber-light:#FDF3DC;
+    --blue:#185FA5;
+    --blue-light:#E6F1FB;
+    --dark:#1A0A06;
+    --muted:#7A5A52;
+    --border:rgba(26,10,6,0.1);
+    --cream:#FFFCFA;
+    --white:#FFFFFF;
+  }
+
+  /* ============================================
+     CONFIGURATION — Change per client
+     ============================================
+     PRIMARY COLOR: --primary (main brand color)
+     BUSINESS NAME: .biz-name content
+     INITIALS: .logo-circle content
+     ============================================ */
+
+  body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);margin:0;}
+  .app{max-width:680px;margin:0 auto;min-height:100vh;}
+
+  /* HEADER */
+  .header{background:var(--primary);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .header-left{display:flex;align-items:center;gap:10px;}
+  .logo-circle{width:38px;height:38px;border-radius:50%;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:var(--primary);flex-shrink:0;}
+  .biz-name{font-family:'Playfair Display',serif;font-size:15px;color:white;font-weight:600;line-height:1.1;}
+  .biz-tag{font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px;}
+  .lang-toggle{display:flex;background:rgba(255,255,255,0.15);border-radius:20px;padding:2px;gap:2px;}
+  .lang-btn{font-size:11px;font-weight:500;padding:4px 12px;border-radius:16px;border:none;cursor:pointer;color:rgba(255,255,255,0.7);background:transparent;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+  .lang-btn.active{background:white;color:var(--primary);}
+
+  /* STATS */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--white);border-bottom:1px solid var(--border);}
+  .stat{padding:0.9rem 0.75rem;border-right:1px solid var(--border);text-align:center;}
+  .stat:last-child{border-right:none;}
+  .stat-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--dark);}
+  .stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-top:2px;}
+  .stat-delta{font-size:10px;margin-top:3px;}
+
+  /* TABS */
+  .tabs{display:flex;background:var(--white);border-bottom:1px solid var(--border);padding:0 0.75rem;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{padding:0.65rem 0.85rem;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+  .tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+
+  /* PANELS */
+  .panel{display:none;padding:1rem;}
+  .panel.active{display:block;}
+  .sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;}
+  .sec-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);}
+  .add-btn{font-size:11px;color:var(--primary);background:var(--primary-light);border:none;padding:4px 12px;border-radius:20px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+  /* ORDER CARDS */
+  .order-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:0.85rem 1rem;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:box-shadow 0.15s;}
+  .order-card:hover{box-shadow:0 2px 8px rgba(26,10,6,0.06);}
+  .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;}
+  .order-body{flex:1;min-width:0;}
+  .order-name{font-size:13px;font-weight:500;color:var(--dark);display:flex;align-items:center;gap:5px;}
+  .order-detail{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .order-right{text-align:right;flex-shrink:0;}
+  .order-price{font-size:13px;font-weight:500;color:var(--dark);}
+  .order-date{font-size:10px;color:var(--muted);margin-top:2px;}
+  .badge{display:inline-block;font-size:9px;font-weight:500;padding:2px 8px;border-radius:10px;margin-top:3px;letter-spacing:0.3px;}
+  .b-paid{background:var(--green-light);color:var(--green);}
+  .b-pending{background:var(--amber-light);color:var(--amber);}
+  .b-ready{background:var(--blue-light);color:var(--blue);}
+  .flag{font-size:11px;}
+
+  /* EVENT CARDS */
+  .event-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:0.85rem 1rem;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;}
+  .event-date-box{background:var(--primary);border-radius:8px;padding:6px 10px;text-align:center;flex-shrink:0;min-width:44px;}
+  .event-month{font-size:9px;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.5px;}
+  .event-day{font-size:20px;font-family:'Playfair Display',serif;color:white;font-weight:600;line-height:1;}
+  .event-body{flex:1;}
+  .event-name{font-size:13px;font-weight:500;color:var(--dark);}
+  .event-loc{font-size:11px;color:var(--muted);margin-top:2px;}
+  .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+  .chip{font-size:10px;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:8px;}
+  .chip-g{background:var(--green-light);color:var(--green);}
+  .event-rev{text-align:right;flex-shrink:0;}
+  .event-rev-val{font-size:13px;font-weight:500;color:var(--dark);}
+  .event-rev-lbl{font-size:10px;color:var(--muted);}
+
+  /* DEAL CARDS */
+  .deal-card{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:0 12px 12px 0;padding:0.85rem 1rem;margin-bottom:8px;}
+  .deal-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .deal-buyer{font-size:13px;font-weight:500;color:var(--dark);}
+  .deal-amount{font-size:14px;font-weight:600;color:var(--gold);font-family:'Playfair Display',serif;flex-shrink:0;}
+  .deal-detail{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+  .deal-ft{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border);}
+  .deal-due{font-size:11px;color:var(--muted);}
+
+  /* AUTO LOG */
+  .auto-log{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:0.85rem 1rem;}
+  .auto-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);}
+  .auto-item:last-child{border-bottom:none;}
+  .auto-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+  .auto-text{font-size:12px;color:var(--muted);flex:1;line-height:1.5;}
+  .auto-text strong{color:var(--dark);}
+  .auto-time{font-size:10px;color:var(--muted);flex-shrink:0;}
+
+  /* DIGEST */
+  .lang-tabs{display:flex;gap:6px;margin-bottom:10px;}
+  .lang-tab{font-size:11px;padding:3px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:var(--white);font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+  .lang-tab.active{background:var(--primary);color:white;border-color:var(--primary);}
+  .digest-card{background:var(--primary-light);border:1px solid rgba(232,97,74,0.2);border-radius:12px;padding:1.1rem 1.25rem;}
+  .digest-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .digest-icon{font-size:20px;}
+  .digest-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--primary);font-weight:600;}
+  .digest-sub{font-size:10px;color:var(--muted);}
+  .digest-body{font-size:13px;color:var(--dark);line-height:1.8;}
+  .digest-body strong{color:var(--green);}
+  .digest-body em{color:var(--primary);font-style:normal;font-weight:500;}
+
+  /* FOOTER */
+  .footer{text-align:center;padding:1rem;border-top:1px solid var(--border);background:var(--white);font-size:10px;color:var(--muted);letter-spacing:0.5px;}
+  .footer span{color:var(--primary);font-weight:500;}
+
+  /* EMPTY STATE */
+  .empty{text-align:center;padding:2rem 1rem;color:var(--muted);font-size:13px;}
+
+  @media(max-width:480px){
+    .stats{grid-template-columns:1fr 1fr;}
+    .stat:nth-child(2){border-right:none;}
+    .stat-val{font-size:18px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <!-- CHANGE: Update initials per client -->
+      <div class="logo-circle" id="logo-initials">RH</div>
+      <div>
+        <!-- CHANGE: Update business name per client -->
+        <div class="biz-name" id="biz-name">Rosa's Honey Farm</div>
+        <div class="biz-tag">Sistema Activo · SecretarIA PR</div>
+      </div>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('es',this)">ES</button>
+      <button class="lang-btn" onclick="setLang('en',this)">EN</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" id="stat-orders">0</div>
+      <div class="stat-lbl" id="lbl-orders">Órdenes</div>
+      <div class="stat-delta" style="color:var(--green);" id="delta-orders">Esta semana</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="stat-revenue">$0</div>
+      <div class="stat-lbl" id="lbl-revenue">Ingresos</div>
+      <div class="stat-delta" style="color:var(--green);" id="delta-revenue">Este mes</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="stat-events">0</div>
+      <div class="stat-lbl" id="lbl-events">Eventos</div>
+      <div class="stat-delta" style="color:var(--amber);" id="delta-events">Próximos</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="stat-deals">0</div>
+      <div class="stat-lbl" id="lbl-deals">Acuerdos</div>
+      <div class="stat-delta" style="color:var(--green);" id="delta-deals">Activos</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('orders',this)" id="tab0">Órdenes</div>
+    <div class="tab" onclick="switchTab('events',this)" id="tab1">Eventos</div>
+    <div class="tab" onclick="switchTab('deals',this)" id="tab2">Acuerdos</div>
+    <div class="tab" onclick="switchTab('digest',this)" id="tab3">Resumen</div>
+    <div class="tab" onclick="switchTab('auto',this)" id="tab4">Auto Log</div>
+  </div>
+
+  <!-- ORDERS PANEL -->
+  <div id="orders" class="panel active">
+    <div class="sec-hd">
+      <span class="sec-title" id="title-orders">Órdenes de clientes</span>
+      <button class="add-btn" id="btn-orders">+ Nueva orden</button>
+    </div>
+    <div id="orders-list">
+      <!-- Orders load here from Airtable or demo data -->
+      <div class="order-card">
+        <div class="avatar" style="background:var(--green-light);color:var(--green);">MR</div>
+        <div class="order-body">
+          <div class="order-name">María Rodríguez <span class="flag">🇵🇷</span></div>
+          <div class="order-detail">Miel Silvestre × 3 · Recogido: 7 jun</div>
+          <span class="badge b-paid">Pagado</span>
+        </div>
+        <div class="order-right">
+          <div class="order-price">$54.00</div>
+          <div class="order-date">1 jun</div>
+        </div>
+      </div>
+      <div class="order-card">
+        <div class="avatar" style="background:var(--blue-light);color:var(--blue);">MJ</div>
+        <div class="order-body">
+          <div class="order-name">Mike Johnson <span class="flag">🇺🇸</span></div>
+          <div class="order-detail">Raw Honeycomb × 2 · Pickup: Jun 7</div>
+          <span class="badge b-pending">Pago pendiente</span>
+        </div>
+        <div class="order-right">
+          <div class="order-price">$67.00</div>
+          <div class="order-date">2 jun</div>
+        </div>
+      </div>
+      <div class="order-card">
+        <div class="avatar" style="background:var(--primary-light);color:var(--primary);">LP</div>
+        <div class="order-body">
+          <div class="order-name">Laura Pérez <span class="flag">🇵🇷</span></div>
+          <div class="order-detail">Bundle Regalo × 2 · Envío a Ponce</div>
+          <span class="badge b-ready">Listo para envío</span>
+        </div>
+        <div class="order-right">
+          <div class="order-price">$88.00</div>
+          <div class="order-date">29 may</div>
+        </div>
+      </div>
+      <div class="order-card">
+        <div class="avatar" style="background:var(--amber-light);color:var(--amber);">SR</div>
+        <div class="order-body">
+          <div class="order-name">Sarah Reeves <span class="flag">🇺🇸</span></div>
+          <div class="order-detail">Propolis Tincture × 2 · Ship to Dorado</div>
+          <span class="badge b-paid">Paid</span>
+        </div>
+        <div class="order-right">
+          <div class="order-price">$64.00</div>
+          <div class="order-date">3 jun</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVENTS PANEL -->
+  <div id="events" class="panel">
+    <div class="sec-hd">
+      <span class="sec-title" id="title-events">Eventos y mercados</span>
+      <button class="add-btn" id="btn-events">+ Agregar evento</button>
+    </div>
+    <div class="event-card">
+      <div class="event-date-box"><div class="event-month">Jun</div><div class="event-day">7</div></div>
+      <div class="event-body">
+        <div class="event-name">La Marina Farmers Market</div>
+        <div class="event-loc">Tren Urbano Martínez Nadal · 9am–2pm</div>
+        <div class="chips">
+          <span class="chip chip-g" id="chip-confirmed">Confirmado</span>
+          <span class="chip" id="chip-reminder">Recordatorio enviado</span>
+          <span class="chip">12 recogidos</span>
+        </div>
+      </div>
+      <div class="event-rev">
+        <div class="event-rev-val">$420</div>
+        <div class="event-rev-lbl" id="lbl-target">meta</div>
+      </div>
+    </div>
+    <div class="event-card">
+      <div class="event-date-box" style="background:var(--dark);"><div class="event-month">Jun</div><div class="event-day">21</div></div>
+      <div class="event-body">
+        <div class="event-name">Local Makers PR Pop-Up</div>
+        <div class="event-loc">Santurce · Por confirmar</div>
+        <div class="chips">
+          <span class="chip" id="chip-pending">Pendiente</span>
+          <span class="chip">Stand bilingüe 🇵🇷🇺🇸</span>
+        </div>
+      </div>
+      <div class="event-rev">
+        <div class="event-rev-val">$650</div>
+        <div class="event-rev-lbl" id="lbl-target2">meta</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEALS PANEL -->
+  <div id="deals" class="panel">
+    <div class="sec-hd">
+      <span class="sec-title" id="title-deals">Acuerdos mayoristas</span>
+      <button class="add-btn" id="btn-deals">+ Registrar acuerdo</button>
+    </div>
+    <div class="deal-card">
+      <div class="deal-hd">
+        <div>
+          <div class="deal-buyer">Café Colao · Santurce</div>
+          <div class="deal-detail" id="deal-detail1">Miel Silvestre — 24 × 12oz frascos/mes · Pago a 15 días</div>
+        </div>
+        <div class="deal-amount">$480/mo</div>
+      </div>
+      <div class="deal-ft">
+        <div class="deal-due" id="deal-due1">Próxima entrega: <strong>12 jun</strong></div>
+        <span class="badge b-paid" id="deal-badge1">Activo</span>
+      </div>
+    </div>
+    <div class="deal-card">
+      <div class="deal-hd">
+        <div>
+          <div class="deal-buyer">Hotel El Convento · Old San Juan</div>
+          <div class="deal-detail" id="deal-detail2">Gift Set × 50 units · Hotel amenity kits · Prepagado</div>
+        </div>
+        <div class="deal-amount">$1,200</div>
+      </div>
+      <div class="deal-ft">
+        <div class="deal-due" id="deal-due2">Entrega: <strong>20 jun</strong></div>
+        <span class="badge b-ready" id="deal-badge2">En producción</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIGEST PANEL -->
+  <div id="digest" class="panel">
+    <div class="lang-tabs">
+      <div class="lang-tab active" onclick="setDigest('es',this)">🇵🇷 Español</div>
+      <div class="lang-tab" onclick="setDigest('en',this)">🇺🇸 English</div>
+    </div>
+    <div class="digest-card">
+      <div class="digest-hd">
+        <div class="digest-icon">📋</div>
+        <div>
+          <div class="digest-title" id="digest-title">Buenos días, Rosa</div>
+          <div class="digest-sub" id="digest-sub">Tu resumen semanal — generado automáticamente</div>
+        </div>
+      </div>
+      <div class="digest-body" id="digest-body">
+        Aquí está lo que pasó esta semana y lo que viene.<br><br>
+        <strong>Órdenes nuevas:</strong> Recibiste <em>4 órdenes</em> por un total de <em>$273</em>. Mike Johnson no ha pagado — recordatorio automático enviado el viernes. El envío de Laura a Ponce está listo para salir.<br><br>
+        <strong>Este fin de semana:</strong> La Marina Farmers Market el <em>7 de junio</em>. Tienes 12 recogidos confirmados. El recordatorio de WhatsApp salió en español e inglés según el idioma de cada cliente.<br><br>
+        <strong>Acuerdos:</strong> Café Colao entrega el <em>12 de junio</em> — prepara 24 frascos. Hotel El Convento vence el 20 de junio. <br><br>
+        <strong>Mes hasta hoy:</strong> <em>$1,840 registrados</em>. Vas en camino a tu mejor mes. 🌿
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTO LOG PANEL -->
+  <div id="auto" class="panel">
+    <div class="sec-hd"><span class="sec-title" id="title-auto">Registro de automatizaciones</span></div>
+    <div class="auto-log">
+      <div class="auto-item">
+        <div class="auto-dot" style="background:var(--green);"></div>
+        <div class="auto-text"><strong>SMS enviado 🇵🇷</strong> · María Rodríguez — "¡Tu orden está lista! Recógela el sábado en La Marina. 🍯"</div>
+        <div class="auto-time">Hoy 9:02am</div>
+      </div>
+      <div class="auto-item">
+        <div class="auto-dot" style="background:var(--blue);"></div>
+        <div class="auto-text"><strong>SMS sent 🇺🇸</strong> · Mike Johnson — "Hi Mike! Your order is ready for pickup Saturday at La Marina Market."</div>
+        <div class="auto-time">Today 9:03am</div>
+      </div>
+      <div class="auto-item">
+        <div class="auto-dot" style="background:var(--amber);"></div>
+        <div class="auto-text"><strong>Payment reminder 🇺🇸</strong> · Mike Johnson — "Hi Mike! Your $67 order is ready once payment clears."</div>
+        <div class="auto-time">Fri 8:00am</div>
+      </div>
+      <div class="auto-item">
+        <div class="auto-dot" style="background:var(--primary);"></div>
+        <div class="auto-text"><strong>Event broadcast 🇵🇷🇺🇸</strong> · WhatsApp a 34 clientes — 19 en español, 15 en inglés · La Marina este sábado</div>
+        <div class="auto-time">Thu 10:00am</div>
+      </div>
+      <div class="auto-item">
+        <div class="auto-dot" style="background:var(--green);"></div>
+        <div class="auto-text"><strong>Review requested 🇺🇸</strong> · Sarah Reeves — "Hi Sarah! Hope you're loving your Propolis. Leave us a quick Google review?"</div>
+        <div class="auto-time">Wed 3:15pm</div>
+      </div>
+      <div class="auto-item">
+        <div class="auto-dot" style="background:var(--blue);"></div>
+        <div class="auto-text"><strong>Nueva orden registrada</strong> · Sarah Reeves (EN) → Airtable · Confirmación SMS en 11 segundos</div>
+        <div class="auto-time">Tue 11:43am</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Powered by <span>SecretarIA PR</span> · Automatización inteligente · 🇵🇷
+  </div>
+
+</div>
+
+<script>
+/* ============================================
+   TRANSLATION SYSTEM
+   ============================================ */
+var T = {
+  es:{
+    s1:'Órdenes', s2:'Ingresos', s3:'Eventos', s4:'Acuerdos',
+    tabs:['Órdenes','Eventos','Acuerdos','Resumen','Auto Log'],
+    titleOrders:'Órdenes de clientes', btnOrders:'+ Nueva orden',
+    titleEvents:'Eventos y mercados', btnEvents:'+ Agregar evento',
+    titleDeals:'Acuerdos mayoristas', btnDeals:'+ Registrar acuerdo',
+    titleAuto:'Registro de automatizaciones',
+    chipConfirmed:'Confirmado', chipReminder:'Recordatorio enviado',
+    chipPending:'Pendiente', target:'meta',
+    dealDetail1:'Miel Silvestre — 24 × 12oz frascos/mes · Pago a 15 días',
+    dealDetail2:'Gift Set × 50 unidades · Amenity kits · Prepagado',
+    dealDue1:'Próxima entrega: <strong>12 jun</strong>',
+    dealDue2:'Entrega: <strong>20 jun</strong>',
+    dealBadge1:'Activo', dealBadge2:'En producción',
+    digestTitle:'Buenos días, Rosa',
+    digestSub:'Tu resumen semanal — generado automáticamente',
+    digestBody:'Aquí está lo que pasó esta semana y lo que viene.<br><br><strong>Órdenes nuevas:</strong> Recibiste <em>4 órdenes</em> por un total de <em>$273</em>. Mike Johnson no ha pagado — recordatorio automático enviado el viernes.<br><br><strong>Este fin de semana:</strong> La Marina Farmers Market el <em>7 de junio</em>. Tienes 12 recogidos confirmados.<br><br><strong>Acuerdos:</strong> Café Colao entrega el <em>12 de junio</em>.<br><br><strong>Mes hasta hoy:</strong> <em>$1,840 registrados</em>. Tu mejor mes. 🌿'
+  },
+  en:{
+    s1:'Orders', s2:'Revenue', s3:'Events', s4:'Deals',
+    tabs:['Orders','Events','Deals','Digest','Auto Log'],
+    titleOrders:'Customer orders', btnOrders:'+ New order',
+    titleEvents:'Events & markets', btnEvents:'+ Add event',
+    titleDeals:'Wholesale deals', btnDeals:'+ Log deal',
+    titleAuto:'Automation activity log',
+    chipConfirmed:'Confirmed', chipReminder:'Reminder sent',
+    chipPending:'Pending', target:'target',
+    dealDetail1:'Wildflower Honey — 24 × 12oz jars/month · Net 15',
+    dealDetail2:'Gift Set × 50 units · Hotel amenity kits · Prepaid',
+    dealDue1:'Next delivery: <strong>Jun 12</strong>',
+    dealDue2:'Delivery due: <strong>Jun 20</strong>',
+    dealBadge1:'Active', dealBadge2:'In production',
+    digestTitle:'Good morning, Rosa',
+    digestSub:'Your weekly summary — auto-generated',
+    digestBody:'Here\'s what happened this week and what\'s coming up.<br><br><strong>New orders:</strong> You received <em>4 orders</em> totaling <em>$273</em>. Mike Johnson hasn\'t paid — automatic reminder sent Friday.<br><br><strong>This weekend:</strong> La Marina Farmers Market on <em>June 7</em>. You have 12 confirmed pickups.<br><br><strong>Deals:</strong> Café Colao delivery <em>June 12</em>.<br><br><strong>Month to date:</strong> <em>$1,840 logged</em>. Your best month yet. 🌿'
+  }
+};
+
+var digestLang = 'es';
+
+function setLang(l, btn) {
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  var d = T[l];
+  document.getElementById('lbl-orders').textContent = d.s1;
+  document.getElementById('lbl-revenue').textContent = d.s2;
+  document.getElementById('lbl-events').textContent = d.s3;
+  document.getElementById('lbl-deals').textContent = d.s4;
+  d.tabs.forEach(function(lbl,i){var el=document.getElementById('tab'+i);if(el)el.textContent=lbl;});
+  document.getElementById('title-orders').textContent = d.titleOrders;
+  document.getElementById('btn-orders').textContent = d.btnOrders;
+  document.getElementById('title-events').textContent = d.titleEvents;
+  document.getElementById('btn-events').textContent = d.btnEvents;
+  document.getElementById('title-deals').textContent = d.titleDeals;
+  document.getElementById('btn-deals').textContent = d.btnDeals;
+  document.getElementById('title-auto').textContent = d.titleAuto;
+  document.getElementById('chip-confirmed').textContent = d.chipConfirmed;
+  document.getElementById('chip-reminder').textContent = d.chipReminder;
+  document.getElementById('chip-pending').textContent = d.chipPending;
+  document.getElementById('lbl-target').textContent = d.target;
+  document.getElementById('lbl-target2').textContent = d.target;
+  document.getElementById('deal-detail1').textContent = d.dealDetail1;
+  document.getElementById('deal-detail2').textContent = d.dealDetail2;
+  document.getElementById('deal-due1').innerHTML = d.dealDue1;
+  document.getElementById('deal-due2').innerHTML = d.dealDue2;
+  document.getElementById('deal-badge1').textContent = d.dealBadge1;
+  document.getElementById('deal-badge2').textContent = d.dealBadge2;
+  if(digestLang === l){
+    document.getElementById('digest-title').textContent = d.digestTitle;
+    document.getElementById('digest-sub').textContent = d.digestSub;
+    document.getElementById('digest-body').innerHTML = d.digestBody;
+  }
+}
+
+function setDigest(l, btn) {
+  digestLang = l;
+  document.querySelectorAll('.lang-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  var d = T[l];
+  document.getElementById('digest-title').textContent = d.digestTitle;
+  document.getElementById('digest-sub').textContent = d.digestSub;
+  document.getElementById('digest-body').innerHTML = d.digestBody;
+}
+
+function switchTab(id, el) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+/* ============================================
+   DEMO STATS — Update per client
+   ============================================ */
+document.getElementById('stat-orders').textContent = '12';
+document.getElementById('stat-revenue').textContent = '$1,840';
+document.getElementById('stat-events').textContent = '4';
+document.getElementById('stat-deals').textContent = '3';
+document.getElementById('delta-orders').textContent = '↑ 3 esta semana';
+document.getElementById('delta-revenue').textContent = '↑ 22% este mes';
+document.getElementById('delta-events').textContent = 'Próx: 7 jun';
+document.getElementById('delta-deals').textContent = '$2,400 total';
+</script>
+
+</body>
+</html>
